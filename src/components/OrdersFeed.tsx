@@ -11,6 +11,7 @@ export function OrdersFeed({
   ownerId,
   scope,
   onNewOrder,
+  onEdit,
 }: {
   orders: Order[];
   roomId: string;
@@ -18,6 +19,7 @@ export function OrdersFeed({
   ownerId: string;
   scope: 'all' | 'mine';
   onNewOrder: () => void;
+  onEdit: (order: Order) => void;
 }) {
   const pieces = orders.reduce(
     (s, o) => s + o.items.reduce((a, it) => a + it.quantity, 0),
@@ -70,6 +72,7 @@ export function OrdersFeed({
             roomId={roomId}
             variant="pending"
             canManage={o.createdBy === userId || ownerId === userId}
+            onEdit={onEdit}
           />
         ))}
       </div>

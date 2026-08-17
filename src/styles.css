@@ -699,21 +699,21 @@ h3 {
   background: var(--served);
   color: #08130d;
 }
-.recap-clear {
-  align-self: flex-start;
-  border: 1.5px solid #3a2023;
-  background: var(--danger-tint);
-  color: var(--danger);
+.recap-serve-all {
+  align-self: stretch;
+  border: 1.5px solid #275641;
+  background: var(--served-tint);
+  color: var(--served-ink);
   font-weight: 700;
-  font-size: 13px;
-  padding: 9px 15px;
+  font-size: 13.5px;
+  padding: 11px 15px;
   border-radius: 10px;
   cursor: pointer;
 }
-.recap-clear:active {
-  transform: scale(0.97);
+.recap-serve-all:active {
+  transform: scale(0.99);
 }
-.recap-clear:disabled {
+.recap-serve-all:disabled {
   opacity: 0.5;
 }
 

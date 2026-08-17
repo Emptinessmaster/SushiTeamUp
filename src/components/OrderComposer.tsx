@@ -1,21 +1,27 @@
 import { useState } from 'react';
 import type { User } from 'firebase/auth';
-import { submitOrder } from '../services/rooms';
-import type { OrderItem } from '../types';
+import { submitOrder, updateOrder } from '../services/rooms';
+import type { Order, OrderItem } from '../types';
 import { IconBackspace, IconCheck, IconPlus, IconTrash } from './Icons';
 
 export function OrderComposer({
   roomId,
   user,
   onClose,
+  editOrder,
 }: {
   roomId: string;
   user: User;
   onClose: () => void;
+  /** Se presente, il compositore modifica un ordine esistente. */
+  editOrder?: Order | null;
 }) {
+  const isEdit = Boolean(editOrder);
   const [dish, setDish] = useState('');
   const [qty, setQty] = useState(1);
-  const [cart, setCart] = useState<OrderItem[]>([]);
+  const [cart, setCart] = useState<OrderItem[]>(
+    editOrder ? editOrder.items.map((it) => ({ ...it })) : [],
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -71,7 +77,11 @@ export function OrderComposer({
     setBusy(true);
     setError('');
     try {
-      await submitOrder(user, roomId, pending);
+      if (editOrder) {
+        await updateOrder(roomId, editOrder.id, pending);
+      } else {
+        await submitOrder(user, roomId, pending);
+      }
       // Reset totale: il prossimo ordine parte sempre da zero.
       clearAll();
       onClose();
@@ -86,7 +96,9 @@ export function OrderComposer({
       <div className="sheet composer" onClick={(e) => e.stopPropagation()}>
         <div className="sheet-handle" />
         <div className="composer-head">
-          <h2 className="sheet-title">Nuovo ordine</h2>
+          <h2 className="sheet-title">
+            {isEdit ? `Modifica ordine #${editOrder!.roundNumber}` : 'Nuovo ordine'}
+          </h2>
           {cart.length > 0 && (
             <button className="link-btn" onClick={clearAll}>
               Svuota
@@ -182,7 +194,9 @@ export function OrderComposer({
           </button>
           <button className="btn primary with-icon" onClick={submit} disabled={busy}>
             <IconCheck width={20} height={20} />
-            {busy ? 'Invio…' : `Invia${totalPieces ? ` · ${totalPieces} pz` : ''}`}
+            {busy
+              ? 'Salvo…'
+              : `${isEdit ? 'Salva' : 'Invia'}${totalPieces ? ` · ${totalPieces} pz` : ''}`}
           </button>
         </div>
         </div>

@@ -94,6 +94,13 @@ export const IconClock = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+export const IconEdit = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M4 20h4L18.6 9.4a2.12 2.12 0 0 0-3-3L5 17v3z" />
+    <path d="M13.5 6.5l3 3" />
+  </svg>
+);
+
 export const IconBackspace = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M21 5H8.5L3 12l5.5 7H21z" />

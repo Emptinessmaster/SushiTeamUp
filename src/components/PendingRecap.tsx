@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { clearPendingOrders } from '../services/rooms';
+import { markAllPendingServed } from '../services/rooms';
 import type { Order } from '../types';
 
 /**
@@ -53,17 +53,17 @@ export function PendingRecap({
     }
   };
 
-  const svuota = async () => {
+  const serviTutti = async () => {
     const label =
       scope === 'mine'
-        ? 'Svuotare tutti i tuoi ordini attivi?'
+        ? 'Segnare come serviti tutti i tuoi ordini attivi?\nPasseranno tra gli ordini effettuati.'
         : ownerId === userId
-          ? 'Svuotare tutti gli ordini attivi della stanza?'
-          : 'Svuotare i tuoi ordini attivi? (puoi rimuovere solo i tuoi)';
+          ? 'Segnare come serviti tutti gli ordini attivi della stanza?\nPasseranno tra gli ordini effettuati.'
+          : 'Segnare come serviti i tuoi ordini attivi? (puoi gestire solo i tuoi)\nPasseranno tra gli ordini effettuati.';
     if (!confirm(label)) return;
     setClearing(true);
     try {
-      await clearPendingOrders(roomId, orders, userId, ownerId);
+      await markAllPendingServed(roomId, orders, userId, ownerId);
       setDone(new Set());
     } finally {
       setClearing(false);
@@ -101,8 +101,8 @@ export function PendingRecap({
         ))}
       </div>
 
-      <button className="recap-clear" onClick={svuota} disabled={clearing}>
-        {clearing ? 'Svuoto…' : 'Svuota ordini attivi'}
+      <button className="recap-serve-all" onClick={serviTutti} disabled={clearing}>
+        {clearing ? 'Sposto…' : 'Segna tutti come serviti'}
       </button>
     </section>
   );

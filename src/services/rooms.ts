@@ -149,6 +149,13 @@ export function subscribeMyRooms(
   });
 }
 
+/** Normalizza e valida le righe di un ordine. */
+function sanitizeItems(items: OrderItem[]): OrderItem[] {
+  return items
+    .map((it) => ({ dish: it.dish.trim(), quantity: Math.max(1, Math.floor(it.quantity)) }))
+    .filter((it) => it.dish.length > 0);
+}
+
 /**
  * Invia un nuovo ordine (un "giro") con una o piu' righe piatto x quantita'.
  * Usa una transazione per assegnare un numero d'ordine progressivo alla stanza.
@@ -158,9 +165,7 @@ export async function submitOrder(
   roomId: string,
   items: OrderItem[],
 ): Promise<void> {
-  const cleanItems = items
-    .map((it) => ({ dish: it.dish.trim(), quantity: Math.max(1, Math.floor(it.quantity)) }))
-    .filter((it) => it.dish.length > 0);
+  const cleanItems = sanitizeItems(items);
   if (cleanItems.length === 0) throw new Error('Aggiungi almeno un piatto.');
 
   const roomRef = doc(db, 'rooms', roomId.toUpperCase());
@@ -199,35 +204,52 @@ export async function setOrderStatus(
   });
 }
 
+/** Modifica le righe di un ordine esistente (piatto x quantita'). */
+export async function updateOrder(
+  roomId: string,
+  orderId: string,
+  items: OrderItem[],
+): Promise<void> {
+  const cleanItems = sanitizeItems(items);
+  if (cleanItems.length === 0) throw new Error('Aggiungi almeno un piatto.');
+  await updateDoc(doc(db, 'rooms', roomId.toUpperCase(), 'orders', orderId), {
+    items: cleanItems,
+  });
+}
+
 /** Elimina un ordine. */
 export async function deleteOrder(roomId: string, orderId: string): Promise<void> {
   await deleteDoc(doc(db, 'rooms', roomId.toUpperCase(), 'orders', orderId));
 }
 
 /**
- * Svuota gli ordini attivi (da servire) che l'utente può eliminare:
- * i propri ordini, oppure tutti se è il proprietario della stanza.
- * Restituisce il numero di ordini eliminati.
+ * Segna come "serviti" tutti gli ordini attivi che l'utente può gestire
+ * (i propri, oppure tutti se è il proprietario). Gli ordini NON vengono
+ * eliminati: passano tra gli ordini effettuati.
+ * Restituisce il numero di ordini spostati.
  */
-export async function clearPendingOrders(
+export async function markAllPendingServed(
   roomId: string,
   orders: Order[],
   uid: string,
   ownerId: string,
 ): Promise<number> {
-  const deletable = orders.filter(
+  const target = orders.filter(
     (o) => o.status === 'pending' && (o.createdBy === uid || ownerId === uid),
   );
-  if (deletable.length === 0) return 0;
+  if (target.length === 0) return 0;
 
   const code = roomId.toUpperCase();
   // Firestore consente max 500 operazioni per batch: spezziamo per sicurezza.
-  for (let i = 0; i < deletable.length; i += 400) {
+  for (let i = 0; i < target.length; i += 400) {
     const batch = writeBatch(db);
-    for (const o of deletable.slice(i, i + 400)) {
-      batch.delete(doc(db, 'rooms', code, 'orders', o.id));
+    for (const o of target.slice(i, i + 400)) {
+      batch.update(doc(db, 'rooms', code, 'orders', o.id), {
+        status: 'completed',
+        completedAt: serverTimestamp(),
+      });
     }
     await batch.commit();
   }
-  return deletable.length;
+  return target.length;
 }

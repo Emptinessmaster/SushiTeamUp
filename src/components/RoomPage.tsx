@@ -33,6 +33,7 @@ export default function RoomPage() {
   const [error, setError] = useState('');
   const [showShare, setShowShare] = useState(false);
   const [showComposer, setShowComposer] = useState(false);
+  const [editOrder, setEditOrder] = useState<Order | null>(null);
   const [tab, setTab] = useState<Tab>('all');
 
   useEffect(() => {
@@ -172,6 +173,7 @@ export default function RoomPage() {
                 ownerId={room.ownerId}
                 scope="all"
                 onNewOrder={() => setShowComposer(true)}
+                onEdit={setEditOrder}
               />
             )}
             {tab === 'mine' && (
@@ -182,6 +184,7 @@ export default function RoomPage() {
                 ownerId={room.ownerId}
                 scope="mine"
                 onNewOrder={() => setShowComposer(true)}
+                onEdit={setEditOrder}
               />
             )}
             {tab === 'doneTotal' && (
@@ -218,11 +221,15 @@ export default function RoomPage() {
       )}
 
       {showShare && <ShareSheet room={room} onClose={() => setShowShare(false)} />}
-      {showComposer && (
+      {(showComposer || editOrder) && (
         <OrderComposer
           roomId={room.id}
           user={user}
-          onClose={() => setShowComposer(false)}
+          editOrder={editOrder}
+          onClose={() => {
+            setShowComposer(false);
+            setEditOrder(null);
+          }}
         />
       )}
     </div>

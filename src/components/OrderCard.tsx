@@ -2,18 +2,20 @@ import { useState } from 'react';
 import { deleteOrder, setOrderStatus } from '../services/rooms';
 import type { Order } from '../types';
 import { Avatar } from './Avatar';
-import { IconCheck, IconClock, IconTrash, IconUndo } from './Icons';
+import { IconCheck, IconClock, IconEdit, IconTrash, IconUndo } from './Icons';
 
 export function OrderCard({
   order,
   roomId,
   canManage,
   variant,
+  onEdit,
 }: {
   order: Order;
   roomId: string;
   canManage: boolean;
   variant: 'pending' | 'completed';
+  onEdit?: (order: Order) => void;
 }) {
   const [busy, setBusy] = useState(false);
   const pieces = order.items.reduce((s, it) => s + it.quantity, 0);
@@ -55,14 +57,26 @@ export function OrderCard({
         {canManage && (
           <div className="order-card-actions">
             {variant === 'pending' ? (
-              <button
-                className="btn tiny served with-icon"
-                onClick={() => run(() => setOrderStatus(roomId, order.id, 'completed'))}
-                disabled={busy}
-              >
-                <IconCheck width={16} height={16} />
-                Servito
-              </button>
+              <>
+                {onEdit && (
+                  <button
+                    className="icon-action"
+                    onClick={() => onEdit(order)}
+                    disabled={busy}
+                    aria-label="Modifica ordine"
+                  >
+                    <IconEdit width={17} height={17} />
+                  </button>
+                )}
+                <button
+                  className="btn tiny served with-icon"
+                  onClick={() => run(() => setOrderStatus(roomId, order.id, 'completed'))}
+                  disabled={busy}
+                >
+                  <IconCheck width={16} height={16} />
+                  Servito
+                </button>
+              </>
             ) : (
               <button
                 className="btn tiny ghost with-icon"
