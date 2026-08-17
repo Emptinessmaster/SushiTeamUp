@@ -1,5 +1,6 @@
 import type { Order } from '../types';
 import { OrderCard } from './OrderCard';
+import { PendingRecap } from './PendingRecap';
 import { IconPlus } from './Icons';
 
 /** Schermate 1 e 2: elenco completo di ogni ordine da servire. */
@@ -45,13 +46,21 @@ export function OrdersFeed({
     <div className="screen">
       <div className="screen-summary">
         <div>
-          <span className="ss-count">{orders.length}</span>
+          <span className="ss-count num">{orders.length}</span>
           <span className="ss-label">
             {orders.length === 1 ? 'ordine' : 'ordini'} in attesa
           </span>
         </div>
-        <div className="ss-pieces">{pieces} pz totali</div>
+        <div className="ss-pieces num">{pieces} pz totali</div>
       </div>
+
+      <PendingRecap
+        orders={orders}
+        roomId={roomId}
+        userId={userId}
+        ownerId={ownerId}
+        scope={scope}
+      />
 
       <div className="order-groups">
         {orders.map((o) => (

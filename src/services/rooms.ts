@@ -12,6 +12,7 @@ import {
   Timestamp,
   updateDoc,
   where,
+  writeBatch,
 } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
 import { db } from '../firebase';
@@ -201,4 +202,32 @@ export async function setOrderStatus(
 /** Elimina un ordine. */
 export async function deleteOrder(roomId: string, orderId: string): Promise<void> {
   await deleteDoc(doc(db, 'rooms', roomId.toUpperCase(), 'orders', orderId));
+}
+
+/**
+ * Svuota gli ordini attivi (da servire) che l'utente può eliminare:
+ * i propri ordini, oppure tutti se è il proprietario della stanza.
+ * Restituisce il numero di ordini eliminati.
+ */
+export async function clearPendingOrders(
+  roomId: string,
+  orders: Order[],
+  uid: string,
+  ownerId: string,
+): Promise<number> {
+  const deletable = orders.filter(
+    (o) => o.status === 'pending' && (o.createdBy === uid || ownerId === uid),
+  );
+  if (deletable.length === 0) return 0;
+
+  const code = roomId.toUpperCase();
+  // Firestore consente max 500 operazioni per batch: spezziamo per sicurezza.
+  for (let i = 0; i < deletable.length; i += 400) {
+    const batch = writeBatch(db);
+    for (const o of deletable.slice(i, i + 400)) {
+      batch.delete(doc(db, 'rooms', code, 'orders', o.id));
+    }
+    await batch.commit();
+  }
+  return deletable.length;
 }

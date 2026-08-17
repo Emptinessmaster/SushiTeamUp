@@ -127,6 +127,8 @@ export function OrderComposer({
           )}
         </div>
 
+        {/* Blocco fisso: display + tastierino + azioni (non scorre con la lista) */}
+        <div className="composer-bottom">
         {/* Display piatto + quantità */}
         <div className="pad-display">
           <div className="pad-number">
@@ -182,6 +184,7 @@ export function OrderComposer({
             <IconCheck width={20} height={20} />
             {busy ? 'Invio…' : `Invia${totalPieces ? ` · ${totalPieces} pz` : ''}`}
           </button>
+        </div>
         </div>
       </div>
     </div>
