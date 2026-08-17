@@ -57,8 +57,8 @@ export default function Home() {
           <Logo size={30} />
           <span>SushiTeamUp</span>
         </div>
-        <button className="icon-btn user-chip" onClick={() => signOut()} title="Esci">
-          <Avatar user={user} size={28} />
+        <button className="home-avatar" onClick={() => signOut()} title="Esci">
+          <Avatar user={user} size={34} />
         </button>
       </header>
 
